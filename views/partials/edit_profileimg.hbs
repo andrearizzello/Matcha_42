@@ -1,0 +1,176 @@
+<style>
+    @media screen and (min-width: 769px) {
+        .is-cent {
+            margin: 0 auto;
+        }
+    }
+</style>
+<div id="personal-form-data-img" class="fullscreen" hidden>
+    <div class="container" style="background-color: white">
+        <div style="width: 100%; height: 100%; padding: .7rem">
+            <div class="columns">
+                {{#each user.pictures}}
+                    <div class="column is-narrow">
+                        <div>
+                            <figure class="image is-128x128 is-cent">
+                                <img class="is-rounded" src="{{this.location}}">
+                            </figure>
+                        </div>
+                        <div class="field has-addons">
+                            <p class="control"
+                               onclick="setDefault(this.parentElement.parentElement.childNodes[1].childNodes[1].childNodes[1].src, this)">
+                                {{#if this.isMain}}
+                                    <a class="button is-success is-outlined">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                        <span>Default</span>
+                                    </a>
+                                {{else}}
+                                    <a class="button is-link is-outlined">
+                                        <span>Set as default</span>
+                                    </a>
+                                {{/if}}
+                            </p>
+                            <p class="control"
+                               onclick="deletePicture(this.parentElement.parentElement.childNodes[1].childNodes[1].childNodes[1].src, this)">
+                                <a class="button is-danger is-outlined">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-times"></i>
+                                    </span>
+                                    <span>Delete</span>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                {{/each}}
+            </div>
+            <div class="field">
+                <div class="file is-centered is-boxed has-name">
+                    <label class="file-label">
+                        <input id="file-picker" class="file-input" type="file" accept="image/*"
+                               onchange="updateName(this)">
+                        <span class="file-cta">
+                            <span class="file-icon">
+                                <i class="fas fa-upload"></i>
+                            </span>
+                            <span class="file-label">
+                                Upload picture
+                            </span>
+                        </span>
+                        <span class="file-name has-text-centered" id="name-label">
+                            No file selected
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <br>
+            {{#ifCon (getLength user.pictures) '>=' 5}}
+                <button class="button is-block is-info is-medium is-fullwidth" type="button" disabled>
+                    Upload picture
+                </button>
+            {{/ifCon}}
+            {{#ifCon (getLength user.pictures) '<' 5}}
+                <button class="button is-block is-info is-medium is-fullwidth" type="button"
+                        onclick="encodeImageFileAsURL(document.getElementById('file-picker'), this)">
+                    Upload picture
+                </button>
+            {{/ifCon}}
+            <br>
+            <button class="button is-block is-danger is-medium is-fullwidth" type="button"
+                    onclick="document.getElementById('personal-form-data-img').setAttribute('hidden', true)">Cancel
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    function updateName(file) {
+        if (file.files.length > 0)
+            document.getElementById('name-label').innerHTML = file.files[0].name;
+    }
+
+    function encodeImageFileAsURL(element, button) {
+        button.classList.add('is-loading');
+        var file = element.files[0];
+        var reader = new FileReader();
+        file ? reader.readAsDataURL(file) : button.classList.remove('is-loading');
+        reader.onloadend = function () {
+            var enc = new TextEncoder();
+            savePreference('img', enc.encode(reader.result.split(',')[1]), false, button)
+                    .then((res) => {
+                        iziToast.show({
+                            title: 'Success',
+                            message: res.msg,
+                            theme: 'light',
+                            position: 'topRight',
+                            color: 'green',
+                            progressBar: false
+                        });
+                    })
+                    .catch((err) => {
+                        iziToast.show({
+                            title: 'Error',
+                            message: err.msg,
+                            theme: 'light',
+                            position: 'topRight',
+                            color: 'red',
+                            progressBar: false
+                        });
+                    })
+        };
+    }
+
+    function deletePicture(link, button) {
+        var result = link.substr(link.indexOf('/imgs/'));
+        if (result != null) {
+            savePreference('remimg', result, false, button)
+                    .then(value => {
+                        iziToast.show({
+                            title: 'Success',
+                            message: value.msg,
+                            theme: 'light',
+                            position: 'topRight',
+                            color: 'green',
+                            progressBar: false
+                        });
+                    })
+                    .catch(reason => {
+                        iziToast.show({
+                            title: 'Error',
+                            message: 'Please check again',
+                            theme: 'light',
+                            position: 'topRight',
+                            color: 'red',
+                            progressBar: false
+                        });
+                    })
+        }
+    }
+
+    function setDefault(link, button) {
+        var result = link.substr(link.indexOf('/imgs/'));
+        if (result != null) {
+            savePreference('defimg', result, false, button)
+                    .then(value => {
+                        iziToast.show({
+                            title: 'Success',
+                            message: value.msg,
+                            theme: 'light',
+                            position: 'topRight',
+                            color: 'green',
+                            progressBar: false
+                        });
+                    })
+                    .catch(reason => {
+                        iziToast.show({
+                            title: 'Error',
+                            message: 'Please check again',
+                            theme: 'light',
+                            position: 'topRight',
+                            color: 'red',
+                            progressBar: false
+                        });
+                    })
+        }
+    }
+</script>

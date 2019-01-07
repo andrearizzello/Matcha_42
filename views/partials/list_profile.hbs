@@ -1,0 +1,123 @@
+<style>
+    .lastonline {
+        font-family: BlinkMacSystemFont, -apple-system, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-weight: 100 !important;
+    }
+
+    .indicator-position {
+        float: right;
+        position: relative;
+        top: 9px;
+        font-size: 10px;
+    }
+</style>
+<script>
+    function showError() {
+        iziToast.show({
+            title: 'Error',
+            message: `Sorry, something bad happened 😥`,
+            theme: 'dark',
+            position: 'topRight',
+            backgroundColor: 'black',
+            progressBar: false
+        });
+    }
+    function likeuser(id, name, icon) {
+        savePreference('likeuser', id, false)
+                .then(value => {
+                    iziToast.show({
+                        title: 'Success',
+                        message: `A big ❤️ has been sent️ to ${name}`,
+                        theme: 'dark',
+                        position: 'topRight',
+                        color: 'red',
+                        backgroundColor: '#283593',
+                        progressBar: false,
+                        timeout: 2000,
+                        onClosed: () => location.reload()
+                    });
+                }).catch(reason => {
+            showError()
+        })
+    }
+    function dislikeuser(id, obj) {
+        if (confirm('Are you sure you want to dislike this user?')) {
+            savePreference('dislike', id, false)
+                    .then(value => {
+                        iziToast.show({
+                            title: 'Success',
+                            message: `User disliked`,
+                            theme: 'light',
+                            position: 'topRight',
+                            progressBar: false,
+                            timeout: 2000,
+                            onClosed: () => location.reload()
+                        });
+                        obj.remove();
+                    }).catch(reason => {
+                showError()
+            })
+        }
+    }
+</script>
+<div class="container">
+    <div class="columns is-multiline">
+        {{#each listuser}}
+            <div class="column is-half">
+                <div class="card" style="margin-top: 20px">
+                    <div class="card-content">
+                        <div class="media">
+                            <div class="media-left">
+                                <figure class="image is-48x48 is-rounded">
+                                    <img src="{{this.location}}">
+                                </figure>
+                            </div>
+                            <div class="media-content">
+                                <p class="title is-4">{{this.firstname}} {{this.lastname}}
+                                    <i class="fas fa-circle indicator-position {{#ifCon this.lastonline '===' 'now'}}has-text-success{{else}}has-text-danger{{/ifCon}}">
+                                        <span class="has-text-black lastonline">&nbsp;Last online: {{this.lastonline}}</span>
+                                    </i>
+                                </p>
+                                <p class="subtitle is-6">@{{this.username}}<br>Age: {{this.age}}</p>
+                            </div>
+                        </div>
+                        <div class="content is-clipped">
+                            {{this.biography}}
+                            <hr>
+                            Popularity: {{this.popularity}}
+                            <p style="float: right; font-style: italic; font-size: 13px">About <b>{{this.totDistance}}</b> {{this.unitMesure}} away from you</p>
+                        </div>
+                    </div>
+                    <footer class="card-footer" id="{{this.idusers}}">
+                        {{#if this.liked}}
+                            <a class="card-footer-item" onclick="location.href = '/chat/{{this.idusers}}'">
+                            <span class="icon has-text-link">
+                                <i class="fas fa-comment-alt"></i>
+                            </span>
+                            </a>
+                        {{else}}
+                            <a class="card-footer-item"
+                               onclick="likeuser({{this.idusers}}, '{{this.firstname}}', this)">
+                            <span class="icon has-text-danger">
+                                <i class="fas fa-heart"></i>
+                            </span>
+                            </a>
+                        {{/if}}
+                        {{#if this.liked}}
+                            <a class="card-footer-item" onclick="dislikeuser({{this.idusers}}, this)">
+                            <span class="icon has-text-danger">
+                                <i class="fas fa-times-circle"></i>
+                            </span>
+                            </a>
+                        {{/if}}
+                        <a class="card-footer-item" href="/profile/{{this.idusers}}">
+                            <span class="icon has-text-black">
+                                <i class="fa fa-eye"></i>
+                            </span>
+                        </a>
+                    </footer>
+                </div>
+            </div>
+        {{/each}}
+    </div>
+</div>

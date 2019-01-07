@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+    <meta charset="UTF-8">
+    <title>Matcha - Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <link rel="stylesheet" href="/css/bulma.min.css">
+    <link rel="stylesheet" href="/css/mystyle.css"/>
+    <link rel="stylesheet" href="/owl.carousel/dist/assets/owl.carousel.min.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/solid.css"
+          integrity="sha384-wnAC7ln+XN0UKdcPvJvtqIH3jOjs9pnKnq9qX68ImXvOGz2JuFoEiCjT8jyZQX2z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/fontawesome.css"
+          integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6" crossorigin="anonymous">
+    <link rel="stylesheet" href="/izitoast/css/iziToast.min.css">
+    <script src="/izitoast/js/iziToast.min.js" type="text/javascript"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/jquery/dist/jquery.js"></script>
+    <script src="/owl.carousel/dist/owl.carousel.min.js"></script>
+    <script src="/js/saveP.js"></script>
+    <script>
+        function askBlock(sender, value, reload, button) {
+            if (confirm("Do you want to block this user? You won't get any new notifications from him/her")) {
+                savePreference(sender, value, reload, button).then(value1 => {
+                    iziToast.show({
+                        title: 'Success',
+                        message: 'User blocked successfully',
+                        theme: 'light',
+                        position: 'topRight',
+                        color: 'green',
+                        progressBar: false
+                    });
+                }).catch((err) => {
+                    iziToast.show({
+                        title: 'Error',
+                        message: 'Something bad happened 😓',
+                        theme: 'light',
+                        position: 'topRight',
+                        color: 'red',
+                        progressBar: false
+                    });
+                })
+            }
+        }
+
+        function askReport(sender, value, reload, button) {
+            if (confirm("Do you want to report this user as fake profile?")) {
+                savePreference(sender, value, reload, button).then(value1 => {
+                    iziToast.show({
+                        title: 'Success',
+                        message: 'User reported successfully',
+                        theme: 'light',
+                        position: 'topRight',
+                        color: 'green',
+                        progressBar: false
+                    });
+                }).catch((err) => {
+                    iziToast.show({
+                        title: 'Error',
+                        message: 'Something bad happened 😓',
+                        theme: 'light',
+                        position: 'topRight',
+                        color: 'red',
+                        progressBar: false
+                    });
+                })
+            }
+        }
+
+        $(document).ready(function () {
+            $('.owl-carousel').owlCarousel({
+                loop: false,
+                margin: 15,
+                nav: true,
+                autoWidth: true,
+                responsive: {
+                    0: {
+                        items: 1
+                    },
+                    600: {
+                        items: 3
+                    },
+                    1000: {
+                        items: 5
+                    }
+                }
+            });
+        });
+    </script>
+    <style>
+        table td {
+            border: unset !important;
+            /*padding: 0 .2em !important;*/
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .text-black {
+            color: black;
+        }
+
+        .white {
+            background-color: unset;
+        }
+
+        .rounded {
+            border-radius: 50%;
+            width: 128px;
+            height: 128px;
+            display: block;
+            /*box-shadow: 0 0 0 4px #008F95;*/
+            margin: 10px auto;
+        }
+    </style>
+</head>
+<body>
+{{>navbar}}
+{{#ifCon other.reports '>' 5}}
+    <div class="container" style="margin-top: 20px">
+        <article class="message is-warning">
+            <div class="message-header">
+                <p>Alert!</p>
+                <button class="delete" aria-label="delete" onclick="this.parentNode.parentNode.remove()"></button>
+            </div>
+            <div class="message-body">
+                This user has been reported {{other.reports}} times!
+            </div>
+        </article>
+    </div>
+{{/ifCon}}
+<div style="text-align: center; margin-bottom: 20px">
+    {{#if other.pictures}}
+        {{#each other.pictures}}
+            {{#if this.isMain}}
+                <img class="rounded" src="{{this.location}}">
+            {{/if}}
+        {{/each}}
+    {{else}}
+        {{#if other.gender}}
+            {{#ifCon other.gender '===' 'Female'}}
+                <img class="rounded" src="/imgs/woman.svg">
+            {{/ifCon}}
+            {{#ifCon other.gender '===' 'Male'}}
+                <img class="rounded" src="/imgs/man.svg">
+            {{/ifCon}}
+        {{else}}
+            <img class="rounded" src="/imgs/man.svg">
+        {{/if}}
+    {{/if}}
+    <div class="field is-grouped" style="justify-content: center">
+        <p class="control">
+            <a class="button is-link" onclick="document.getElementById('show-pic').classList.toggle('is-active')">Show
+                picture</a>
+        </p>
+        <p class="control">
+            <a class="button is-danger" onclick="askBlock('block', '{{other.idusers}}', true, this)">
+                Block Profile
+            </a>
+        </p>
+        <p class="control">
+            <a class="button is-warning" onclick="askReport('report', '{{other.idusers}}', true, this)">
+                Report Fake Profile
+            </a>
+        </p>
+    </div>
+</div>
+<div class="container" style="margin-bottom: 30px">
+    <div class="tile is-ancestor">
+        <div class="tile is-vertical is-16">
+            <div class="tile">
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child notification is-link">
+                        <p class="title">Personal info</p>
+                        <table class="table white text-white">
+                            <tr>
+                                <td>
+                                    <p>Username:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p><b>{{other.username}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>First name:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p><b>{{other.firstname}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Last name:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p><b>{{other.lastname}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Position:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p id="position-tag"><b>{{other.position}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Age:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p><b>{{other.age}}</b></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </article>
+                </div>
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child notification is-danger has-text-centered">
+                        <p class="title">Popularity</p>
+                        <p class="title is-1">{{other.popularity}}</p>
+                    </article>
+                </div>
+            </div>
+            <div class="tile">
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child notification box">
+                        <p class="title">Sexuality</p>
+                        <table class="table white text-black">
+                            <tr>
+                                <td>
+                                    <label for="sex_pref">Sexual Preference:</label>
+                                </td>
+                                <td>
+                                    <p><b>{{other.sex_pref}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="gender_pref">Gender:</label>
+                                </td>
+                                <td>
+                                    <p><b>{{other.gender}}</b></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </article>
+                </div>
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child notification box">
+                        <p class="title">Tags</p>
+                        <div class="tags">
+                            {{#each other.tags}}
+                                <span class="tag is-dark">{{this.tag_name}}</span>
+                            {{/each}}
+                        </div>
+                    </article>
+                </div>
+            </div>
+            <div class="tile is-parent">
+                <article class="tile is-child notification is-primary">
+                    <p class="title">Biography</p>
+                    <p class="subtitle">{{other.biography}}</p>
+                </article>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="show-pic">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+        <h1 class="title is-2 has-text-white has-text-centered">Here some pictures of {{other.username}}</h1>
+        <div class="owl-carousel owl-theme">
+            {{#each other.pictures}}
+                <img src="{{this.location}}" style="width: 200px"/>
+            {{/each}}
+        </div>
+    </div>
+    <button class="modal-close is-large" aria-label="close"
+            onclick="document.getElementById('show-pic').classList.toggle('is-active')"></button>
+</div>

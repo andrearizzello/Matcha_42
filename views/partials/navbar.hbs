@@ -1,0 +1,146 @@
+<style>
+    .button2 {
+        width: 1.5rem;
+        height: 1.5rem;
+        color: white;
+        background-color: unset;
+        display: inline-block;
+        position: relative;
+        border: unset;
+        text-align: center;
+    }
+
+    .button__badge {
+        background-color: #fa3e3e;
+        border-radius: 2px;
+        color: white;
+        padding: 1px 3px;
+        font-size: 10px;
+        position: absolute;
+        top: -5px;
+        right: -5px;
+    }
+</style>
+{{#if user}}
+<script>
+    window.onload = () => {
+        var socket = io();
+        socket.emit('join', '{{user.idusers}}');
+        socket.on('newLike', data => {
+            iziToast.show({
+                title: 'Hey!',
+                message: `${data.idLiker} ${data.msg} 😍`,
+                theme: 'dark',
+                position: 'topRight',
+                color: 'red',
+                backgroundColor: '#283593',
+                progressBar: false
+            });
+        });
+        socket.on('disLike', data => {
+            iziToast.show({
+                title: 'Bad News!',
+                message: `${data.idDisLiker} ${data.msg} 😞`,
+                theme: 'dark',
+                position: 'topRight',
+                color: 'red',
+                backgroundColor: '#283593',
+                progressBar: false
+            });
+        });
+        socket.on('newMessage', data => {
+            var msg_container = document.getElementById('message-container');
+            if (msg_container && data.usernameMessager === '{{chatUsername}}') {
+                var msg = document.createElement("p");
+                msg.classList.add('bubble-right' ,'spacing', 'has-text-white');
+                msg.innerText = data.msg;
+                msg_container.appendChild(msg);
+                msg_container.scrollTop = msg_container.scrollHeight;
+            } else {
+                iziToast.show({
+                    title: 'Hey!',
+                    message: `${data.usernameMessager} sent you a message`,
+                    theme: 'dark',
+                    position: 'topRight',
+                    color: 'red',
+                    backgroundColor: '#283593',
+                    progressBar: false
+                });
+            }
+        });
+        socket.on('newView', data => {
+            iziToast.show({
+                title: 'Hey!',
+                message: `${data.usernameViewer} took a look at your profile`,
+                theme: 'dark',
+                position: 'topRight',
+                color: 'red',
+                backgroundColor: '#283593',
+                progressBar: false
+            });
+        });
+        var l = document.getElementById('message-container');
+        if (l) l.scrollTop = l.scrollHeight;
+    };
+</script>
+{{/if}}
+
+<section class="hero is-info">
+    <div class="hero-head">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <a class="navbar-item">
+                    <p>Matcha</p>
+                </a>
+                <span class="navbar-burger burger" data-target="navbarMenuHeroA"
+                      onclick="this.classList.toggle('is-active'); document.getElementById('navbarMenuHeroA').classList.toggle('is-active')">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </div>
+            <div id="navbarMenuHeroA" class="navbar-menu">
+                <div class="navbar-end">
+                    {{#if user.username}}
+                        {{#unless missing}}
+                            <a class="navbar-item is-light" href="/chat">
+                                <div class="button2">
+                                    <i class="fas fa-envelope"></i>
+                                    <span class="button__badge">{{messages}}</span>
+                                </div>
+                            </a>
+                            <a class="navbar-item is-light" href="/notifications">
+                                <div class="button2">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="button__badge">{{notifications}}</span>
+                                </div>
+                            </a>
+                            <a class="navbar-item is-light" href="/search">
+                            <span class="icon">
+                                <i class="fas fa-search"></i>
+                            </span>
+                                <span>Search</span>
+                            </a>
+                        {{/unless}}
+                        <a class="navbar-item is-light" href="/profile">
+                            <span class="icon">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <span>Profile</span>
+                        </a>
+                        <a class="navbar-item" href="/logout">
+                            Logout
+                        </a>
+                    {{else}}
+                        <a class="navbar-item is-light" href="/login">
+                            Login
+                        </a>
+                        <a class="navbar-item" href="/register">
+                            Register
+                        </a>
+                    {{/if}}
+                </div>
+            </div>
+        </nav>
+    </div>
+</section>

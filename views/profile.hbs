@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+    <meta charset="UTF-8">
+    <title>Matcha - Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <link rel="stylesheet" href="/css/bulma.min.css">
+    <link rel="stylesheet" href="/css/mystyle.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/solid.css"
+          integrity="sha384-wnAC7ln+XN0UKdcPvJvtqIH3jOjs9pnKnq9qX68ImXvOGz2JuFoEiCjT8jyZQX2z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/fontawesome.css"
+          integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6" crossorigin="anonymous">
+    <link rel="stylesheet" href="/izitoast/css/iziToast.min.css">
+    <script src="/izitoast/js/iziToast.min.js" type="text/javascript"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/saveP.js"></script>
+    <script defer>
+        function showPosition(position) {
+            let postionTag = document.getElementById('position-tag');
+            let button = document.getElementById('update-pos-btn');
+            fetch(`https://reverse.geocoder.api.here.com/6.2/reversegeocode.json?prox=${position.coords.latitude},${position.coords.longitude}&mode=retrieveAreas&maxresults=1&app_id=REPLACE&app_code=REPLACE`)
+                    .then((response) => {
+                        return response.json()
+                    })
+                    .then((response) => {
+                        response = response.Response.View[0].Result[0].Location.Address;
+                        let finalAddr;
+                        if (response.City) finalAddr = `${response.City}, `;
+                        if (response.District) finalAddr += `${response.District}, `;
+                        if (response.PostalCode) finalAddr += `${response.PostalCode}, `;
+                        if (!response.District && !response.PostalCode) finalAddr += `${response.City}, `;
+                        finalAddr += response.Country;
+                        postionTag.innerHTML = `<b>${finalAddr}</b>`;
+                        savePreference('positioning', finalAddr, false, button).then(value => {}).catch(reason => {})
+                    })
+                    .catch((error) => {
+                        button.classList.remove('is-loading');
+                    });
+        }
+
+        function error(error) {
+            let postionTag = document.getElementById('position-tag');
+            if (error.code === error.PERMISSION_DENIED) {
+                fetch('https://api.ipify.org?format=json').then((response) => {
+                    return response.json()
+                }).then((response) => {
+                    fetch(`http://api.ipstack.com/${response.ip}?access_key=REPLACE`).then((response2) => {
+                        return response2.json()
+                    }).then((response2) => {
+                        postionTag.innerHTML = "<b>" + response2.city + ", " + response2.country_name + "</b>";
+                        savePreference('positioning', response2.city + ", " + response2.country_name, false, document.getElementById('update-pos-btn'))
+                    })
+                }).catch(reason => {})
+            }
+        }
+
+        function updatePosition(button) {
+            if (button) button.classList.add('is-loading');
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, error);
+            }
+        }
+    </script>
+    <style>
+        table td {
+            border: unset !important;
+            /*padding: 0 .2em !important;*/
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .text-black {
+            color: black;
+        }
+
+        .white {
+            background-color: unset;
+        }
+
+        .rounded {
+            border-radius: 50%;
+            width: 128px;
+            height: 128px;
+            display: block;
+            /*box-shadow: 0 0 0 4px #008F95;*/
+            margin: 10px auto;
+        }
+    </style>
+</head>
+<body>
+{{>navbar}}
+{{#if missing}}
+    <div class="container" style="margin-top: 20px">
+        {{#each missing}}
+            <article class="message is-danger">
+                <div class="message-header">
+                    <p>Alert!</p>
+                    <button class="delete" aria-label="delete" onclick="this.parentNode.parentNode.remove()"></button>
+                </div>
+                <div class="message-body">
+                    Since <b>{{this}}</b> is missing, you won't be able to see anyone.
+                </div>
+            </article>
+        {{/each}}
+    </div>
+{{/if}}
+<div style="text-align: center; margin-bottom: 20px">
+    {{#if user.pictures}}
+        {{#each user.pictures}}
+            {{#if this.isMain}}
+                <img class="rounded" src="{{this.location}}">
+            {{/if}}
+        {{/each}}
+    {{else}}
+        {{#if user.gender}}
+            {{#ifCon user.gender '===' 'Female'}}
+                <img class="rounded" src="/imgs/woman.svg">
+            {{/ifCon}}
+            {{#ifCon user.gender '===' 'Male'}}
+                <img class="rounded" src="/imgs/man.svg">
+            {{/ifCon}}
+        {{else}}
+            <img class="rounded" src="/imgs/man.svg">
+        {{/if}}
+    {{/if}}
+    <a class="button is-link is-outlined is-rounded"
+       onclick="document.getElementById('personal-form-data-img').removeAttribute('hidden')">Change picture</a>
+</div>
+<div class="container" style="margin-bottom: 30px">
+    <div class="tile is-ancestor">
+        <div class="tile is-vertical is-16">
+            <div class="tile">
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child notification is-link">
+                        <p class="title">Personal info</p>
+                        <table class="table white text-white">
+                            <tr>
+                                <td>
+                                    <p>Username:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p><b>{{user.username}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>First name:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p><b>{{user.firstname}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Last name:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p><b>{{user.lastname}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Email:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p><b>{{user.email}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Position:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p id="position-tag"><b>{{user.position}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p>Age:&nbsp;</p>
+                                </td>
+                                <td>
+                                    <p><b>{{user.age}}</b></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p class="control">
+                                        <a class="button is-light is-small" id="update-pos-btn"
+                                           onclick="updatePosition(this)">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </span>
+                                            <span>Update position</span>
+                                        </a>
+                                    </p>
+                                </td>
+                                <td>
+                                    <p class="control">
+                                        <a class="button is-light is-small"
+                                           onclick="document.getElementById('personal-form-data').removeAttribute('hidden')">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-pen"></i>
+                                            </span>
+                                            <span>Edit personal data</span>
+                                        </a>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </article>
+                </div>
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child notification is-danger has-text-centered">
+                        <p class="title">Popularity</p>
+                        <p class="title is-1">{{user.popularity}}</p>
+                    </article>
+                </div>
+            </div>
+            <div class="tile">
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child notification box">
+                        <p class="title">Sexuality</p>
+                        <table class="table white text-black">
+                            <tr>
+                                <td>
+                                    <label for="sex_pref">Sexual Preference:</label>
+                                </td>
+                                <td>
+                                    <div class="select is-small" style="width: 100%">
+                                        <select id="sex_pref" style="width: 100%;">
+                                            <option {{#ifCon user.sex_pref '===' 'Heterosexual'}} selected {{/ifCon}}>
+                                                Heterosexual
+                                            </option>
+                                            <option {{#ifCon user.sex_pref '===' 'Homosexual'}} selected {{/ifCon}}>
+                                                Homosexual
+                                            </option>
+                                            <option {{#ifCon user.sex_pref '===' 'Bisexual'}} selected {{/ifCon}}>
+                                                Bisexual
+                                            </option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="control" style="display: inline">
+                                        <a class="button is-dark is-small"
+                                           onclick="savePreference('sexual_preference', document.getElementById('sex_pref').value, this)">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-save"></i>
+                                            </span>
+                                            <span>Save</span>
+                                        </a>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="gender_pref">Gender:</label>
+                                </td>
+                                <td>
+                                    <div class="select is-small" style="width: 100%">
+                                        <select id="gender_pref" style="width: 100%">
+                                            <option {{#unless user.gender}} selected {{/unless}}></option>
+                                            <option {{#ifCon user.gender '===' 'Female'}} selected {{/ifCon}}>Female
+                                            </option>
+                                            <option {{#ifCon user.gender '===' 'Male'}} selected {{/ifCon}}>Male</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="control" style="display: inline">
+                                        <a class="button is-dark is-small"
+                                           onclick="savePreference('gender_preference', document.getElementById('gender_pref').value, this)">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-save"></i>
+                                            </span>
+                                            <span>Save</span>
+                                        </a>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </article>
+                </div>
+                <div class="tile is-parent is-vertical">
+                    <article class="tile is-child notification box">
+                        <p class="title">Tags</p>
+                        <div class="tags">
+                            {{#each user.tags}}
+                                <span class="tag is-dark">{{this.tag_name}}</span>
+                            {{/each}}
+                        </div>
+                    </article>
+                </div>
+            </div>
+            <div class="tile is-parent">
+                <article class="tile is-child notification is-primary">
+                    <p class="title">Biography</p>
+                    <p class="subtitle">{{user.biography}}</p>
+                </article>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+{{>edit_pref}}
+{{>edit_profileimg}}
+</html>

@@ -1,0 +1,130 @@
+<div id="personal-form-data" class="fullscreen" hidden>
+    <div class="container" style="background-color: white">
+        <div style="width: 100%; height: 100%; padding: .7rem">
+            <form method="post" name="form-update">
+                <div class="field">
+                    <label class="label">Username</label>
+                    <div class="control">
+                        <input class="input" name="username" type="text" placeholder="{{user.username}}"
+                               value="{{user.username}}" autocomplete="off" minlength="2" maxlength="14" required
+                               autofocus>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">First Name</label>
+                    <div class="control">
+                        <input class="input" name="firstname" type="text" placeholder="{{user.firstname}}"
+                               value="{{user.firstname}}" autocomplete="off" minlength="2" maxlength="19" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Last Name</label>
+                    <div class="control">
+                        <input class="input" name="lastname" type="text" placeholder="{{user.lastname}}"
+                               value="{{user.lastname}}" autocomplete="off" minlength="2" maxlength="19" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Email</label>
+                    <div class="control">
+                        <input class="input" name="email" type="email" placeholder="{{user.email}}"
+                               value="{{user.email}}"
+                               autocomplete="off" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control">
+                        <input class="input" name="password" type="password" placeholder="Password" autocomplete="off" minlength="8" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Biography</label>
+                    <textarea class="textarea" name="biography" placeholder="{{user.biography}}" rows="10"
+                              style="resize: none" required>{{user.biography}}</textarea>
+                </div>
+                <div class="field">
+                    <label class="label">Age</label>
+                    <div class="control">
+                        <input class="input" name="age" type="date" value="{{user.born}}" placeholder="{{user.born}}"
+                               autocomplete="off" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Position</label>
+                    <div class="control">
+                        <input class="input" name="positioning" type="text" placeholder="{{user.position}}"
+                               value="{{user.position}}"
+                               autocomplete="off" required>
+                    </div>
+                </div>
+                <div class="select is-multiple field">
+                    <label class="label" for="select-tags">Choose some tags</label>
+                    <select multiple id="select-tags">
+                        {{#each tags}}
+                            <option value="{{this.id}}">{{this.value}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                <button class="button is-block is-info is-medium is-fullwidth" type="button" onclick="updateData(this)">
+                    Update
+                    data
+                </button>
+                <br>
+                <button class="button is-block is-danger is-medium is-fullwidth" type="button"
+                        onclick="document.getElementById('personal-form-data').setAttribute('hidden', true)">Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    async function updateData(button) {
+        let inputs = document.forms["form-update"].querySelectorAll('input,textarea,select');
+        let errors = 0;
+        for (let index = 0; index < inputs.length; index++) {
+            if (inputs[index].type === 'select-multiple' && inputs[index].selectedOptions.length > 0) {
+                let array = Array.from(inputs[index].selectedOptions).map((element) => {return element.value});
+                await savePreference('settag', array , false, button)
+                        .catch(reason => {
+                            iziToast.show({
+                                title: 'Error',
+                                message: reason.positioning ? reason.msg: 'Please check again',
+                                theme: 'light',
+                                position: 'topRight',
+                                color: 'red',
+                                progressBar: false
+                            });
+                            errors++;
+                        })
+            }
+            else if (inputs[index].value.length > 0 && inputs[index].value !== inputs[index].placeholder) {
+                if (inputs[index].name === 'password' && inputs[index].value.length < 8) {
+                    iziToast.show({
+                        title: 'Error',
+                        message: 'Password too short!',
+                        theme: 'light',
+                        position: 'topRight',
+                        color: 'red',
+                        progressBar: false
+                    });
+                    errors++
+                } else {
+                    await savePreference(inputs[index].name, inputs[index].value, false, button)
+                            .catch(reason => {
+                                iziToast.show({
+                                    title: 'Error',
+                                    message: reason.positioning ? reason.msg : 'Please check again',
+                                    theme: 'light',
+                                    position: 'topRight',
+                                    color: 'red',
+                                    progressBar: false
+                                });
+                                errors++
+                            })
+                }
+            }
+        }
+        if (!errors) location.reload();
+    }
+</script>

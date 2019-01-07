@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+    <meta charset="UTF-8">
+    <title>Matcha - Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <link rel="stylesheet" href="/css/bulma.min.css">
+    <link rel="stylesheet" href="/css/mystyle.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/solid.css"
+          integrity="sha384-wnAC7ln+XN0UKdcPvJvtqIH3jOjs9pnKnq9qX68ImXvOGz2JuFoEiCjT8jyZQX2z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/fontawesome.css"
+          integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6" crossorigin="anonymous">
+    <link rel="stylesheet" href="/izitoast/css/iziToast.min.css">
+    <script src="/izitoast/js/iziToast.min.js" type="text/javascript"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+{{>navbar}}
+<br>
+<div class="container">
+    {{#each listMsgUsers}}
+        <div class="notification">
+            <div class="is-flex" style="align-items: center;">
+                <figure class="image is-48x48 is-inline-block">
+                    <img class="is-rounded" src="{{this.location}}">
+                </figure>
+                <p style="margin-left: 20px">User <b>{{this.username}}</b></p>
+                <div style="position: absolute; right: 10px">
+                    <a class="button is-info is-small" href="/chat/{{this.idusers}}">Chat Now!</a>
+                </div>
+            </div>
+        </div>
+    {{/each}}
+</div>
+</body>

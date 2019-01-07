@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Matcha - Home</title>
+    <meta name="author" content="Andrea Rizzello">
+    <meta name="description" content="A meeting website made at 42 with ❤️">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <link rel="stylesheet" href="/css/bulma.min.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/solid.css" integrity="sha384-wnAC7ln+XN0UKdcPvJvtqIH3jOjs9pnKnq9qX68ImXvOGz2JuFoEiCjT8jyZQX2z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/fontawesome.css" integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6" crossorigin="anonymous">
+</head>
+<body>
+<section class="hero is-info is-fullheight">
+    <div class="hero-head">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="/">
+                    <p>Matcha</p>
+                </a>
+                <span class="navbar-burger burger" data-target="navbarMenuHeroA" onclick="this.classList.toggle('is-active'); document.getElementById('navbarMenuHeroA').classList.toggle('is-active')">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </div>
+            <div id="navbarMenuHeroA" class="navbar-menu">
+                <div class="navbar-end">
+                    {{#if user.username}}
+                        <a class="navbar-item is-light" href="/profile">
+                            {{user.username}}
+                        </a>
+                        <a class="navbar-item" href="/logout">
+                            Logout
+                        </a>
+                    {{else}}
+                        <a class="navbar-item is-light" href="/login">
+                            Login
+                        </a>
+                        <a class="navbar-item" href="/register">
+                            Register
+                        </a>
+                    {{/if}}
+                </div>
+            </div>
+        </nav>
+    </div>
+    <div class="hero-body">
+        <div class="container has-text-centered">
+            <p class="title">
+                We Match people like you!
+            </p>
+            <p class="subtitle">
+                Register now! 😄
+            </p>
+        </div>
+    </div>
+</section>
